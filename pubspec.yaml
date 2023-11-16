@@ -41,6 +41,8 @@ dependencies:
   flutter_local_notifications: ^15.1.0+1
   http: ^1.1.0
   connectivity:
+  csv: 
+
   # rename_app:
   # month_picker_dialog:
   

@@ -19,9 +19,11 @@ class SelectMenuScreen extends StatefulWidget {
 class _SelectMenuScreenState extends State<SelectMenuScreen> {
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchMenuController = TextEditingController();
   final Map<String, TextEditingController> _quantityControllers = {};
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
+  List<Restaurant> _filteredMenu = [];
   final CollectionReference miscCollection =
       FirebaseFirestore.instance.collection('misc');
   double? taxValue;
@@ -95,6 +97,16 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
       }).toList();
     });
   }
+
+  // void _filterMenu(String partialName) {
+  //   setState(() {
+  //     _filteredMenu = _selectedRestaurant.menu.where((_selectedRestaurant.menu['item']) {
+  //       return restaurant.name
+  //           .toLowerCase()
+  //           .contains(partialName.toLowerCase());
+  //     }).toList();
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +191,13 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
         ),
         Center(child: Text('Location: ${_selectedRestaurant!.location}')),
         const SizedBox(height: 16),
+        // Card(
+        //   child: MyTextField(
+        //     label: 'Search Menu',
+        //     controller: _searchMenuController,
+        //     func: _filterMenu,
+        //   ),
+        // ),
         Expanded(
           child: Card(
             child: Container(
