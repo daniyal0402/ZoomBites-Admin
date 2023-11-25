@@ -30,7 +30,7 @@ class ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
         final FirebaseFirestore firestore = FirebaseFirestore.instance;
         orderData['orderDateTime'] = FieldValue.serverTimestamp();
         orderData['status'] = "New";
-        firestore.collection('orders').add(orderData).then((value) {
+        await firestore.collection('orders').add(orderData).then((value) {
           showToast(context, "Order Placed Successfully");
         });
 
@@ -231,6 +231,14 @@ class ConfirmOrderScreenState extends State<ConfirmOrderScreen> {
                             textAlign: TextAlign.end,
                             style: TextStyle(fontWeight: FontWeight.bold),
                             'Tax: \$${orderData['tax']}'),
+                        Text(
+                            textAlign: TextAlign.end,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                            'Miscellenous Charges: \$${orderData['miscCharges']}'),
+                        Text(
+                            textAlign: TextAlign.end,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                            'Bottle Deposit: \$${orderData['bottleCharges']}'),
                         Text(
                             textAlign: TextAlign.end,
                             style: TextStyle(fontWeight: FontWeight.bold),

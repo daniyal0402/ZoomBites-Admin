@@ -23,14 +23,19 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
   final Map<String, TextEditingController> _quantityControllers = {};
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
-  List<Restaurant> _filteredMenu = [];
+  List<Map<dynamic, dynamic>> _filteredMenu = [];
   final CollectionReference miscCollection =
       FirebaseFirestore.instance.collection('misc');
   double? taxValue;
   double? deliveryChargesValue;
+  double? bottleValue;
+  double? miscValue;
   double grandTotal = 0.0;
   double taxAmount = 0.0;
+  double bottleAmount = 0.0;
+  double miscAmount = 0.0;
   double total = 0.0;
+  bool addMiscCharges = false;
 
   Restaurant? _selectedRestaurant; // To store the selected restaurant
 
@@ -69,6 +74,7 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
             'item': menuEntry['item'],
             'price': menuEntry['price'],
             'description': menuEntry['description'],
+            'isBottle': menuEntry['isBottle']
           };
         }).toList();
 
@@ -83,6 +89,7 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
       }).toList();
     });
     _filterRestaurants("");
+
     setState(() {
       isLoading = false;
     });
@@ -95,6 +102,20 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
             .toLowerCase()
             .contains(partialName.toLowerCase());
       }).toList();
+    });
+  }
+
+  void _filterMenu(String partialName) {
+    _filteredMenu.clear();
+    setState(() {
+      _selectedRestaurant!.menu.forEach((e) {
+        if (e['item']
+            .toString()
+            .toLowerCase()
+            .contains(partialName.toLowerCase())) {
+          _filteredMenu.add(e);
+        }
+      });
     });
   }
 
@@ -160,6 +181,7 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
                               setState(() {
                                 _selectedRestaurant =
                                     _filteredRestaurants[index];
+                                _filterMenu("");
                               });
                             },
                           ),
@@ -181,16 +203,41 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
     return false;
   }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   Widget _buildRestaurantDetails() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Center(
-          child: Text('Restaurant: ${_selectedRestaurant!.name}'),
+        Center(child: Text('Restaurant: ${_selectedRestaurant!.name}')),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text("Add miscellenous charges"),
+            Container(
+              color: Colors.yellow[800],
+              child: Checkbox(
+                  focusColor: Colors.white,
+                  hoverColor: Colors.white,
+                  checkColor: Colors.amber,
+                  activeColor: Colors.white,
+                  value: addMiscCharges,
+                  onChanged: ((value) {
+                    setState(() {
+                      addMiscCharges = value!;
+                    });
+                  })),
+            ),
+          ],
         ),
-        Center(child: Text('Location: ${_selectedRestaurant!.location}')),
-        const SizedBox(height: 16),
+        Card(
+          child: MyTextField(
+            label: 'Search Items',
+            controller: _searchMenuController,
+            func: _filterMenu,
+          ),
+        ),
+
         // Card(
         //   child: MyTextField(
         //     label: 'Search Menu',
@@ -203,12 +250,13 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
             child: Container(
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
               child: ListView.builder(
-                itemCount: _selectedRestaurant!.menu.length,
+                itemCount: _filteredMenu.length,
                 itemBuilder: (context, index) {
-                  final menuEntry = _selectedRestaurant!.menu[index];
+                  final menuEntry = _filteredMenu[index];
                   final itemName = menuEntry['item'];
                   final itemPrice = menuEntry['price'];
                   final itemDescription = menuEntry['description'];
+                  final itemIsBottle = menuEntry['isBottle'];
 
                   // Create TextEditingController for quantity input
                   final quantityController =
@@ -280,6 +328,28 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
           padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
           child: Text(
             textAlign: TextAlign.end,
+            'Misc Charges: \$$miscAmount',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+          child: Text(
+            textAlign: TextAlign.end,
+            'Bottle Deposit: \$$bottleAmount',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+          child: Text(
+            textAlign: TextAlign.end,
             'Delivery Charges: \$$deliveryChargesValue',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
@@ -319,14 +389,21 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     bool legalValues = true;
+
                     // Build the order details
                     final List<Map<String, dynamic>> orderItems = [];
-                    _selectedRestaurant!.menu.forEach((menuEntry) {
-                      final itemName = menuEntry['item'];
-                      final itemPrice = double.tryParse(menuEntry['price']);
-                      final quantity = double.tryParse(
-                              _quantityControllers[itemName]!.text) ??
-                          0;
+
+                    _filteredMenu.forEach((menuEntry) {
+                      double? itemPrice = double.tryParse("0.0");
+                      double quantity = 0;
+                      final itemName = menuEntry['item'] ?? "";
+                      if (_quantityControllers[itemName] != null) {
+                        itemPrice =
+                            double.tryParse(menuEntry['price'] ?? "0.0");
+                        quantity = double.tryParse(
+                                _quantityControllers[itemName]!.text) ??
+                            0;
+                      }
 
                       if (checkInputs(quantity)) {
                         if (quantity > 0) {
@@ -340,14 +417,16 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
                         showInputError(context);
                         legalValues = false;
                       }
+                      // print("HERE Checkinputs_$i");
                     });
-
                     // Build the order data
                     final Map<String, dynamic> orderData = {
                       'customer': widget.customer.toMap(),
                       'restaurant': _selectedRestaurant!.toMap(),
                       'orderItems': orderItems,
                       'total': _calculateTotal(),
+                      'miscCharges': miscAmount,
+                      'bottleCharges': bottleAmount,
                       'grandTotal': grandTotal,
                       'tax': taxAmount,
                       'deliveryCharges': deliveryChargesValue,
@@ -381,6 +460,9 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
 
       if (miscDoc.exists) {
         setState(() {
+          bottleValue = miscDoc['bottleCharges']?.toDouble();
+          print(bottleValue);
+          miscValue = miscDoc['miscCharges']?.toDouble();
           taxValue = miscDoc['tax']?.toDouble();
           deliveryChargesValue = miscDoc['deliveryCharges']?.toDouble();
         });
@@ -393,11 +475,16 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
   double _calculateTotal() {
     total = 0;
     taxAmount = 0;
+    bottleAmount = 0;
     grandTotal = 0;
+    miscAmount = 0;
+    if (addMiscCharges) miscAmount = miscValue!;
+    print(miscAmount);
     for (var menuEntry in _selectedRestaurant!.menu) {
       final itemName = menuEntry['item'];
       final itemPrice = double.tryParse(menuEntry['price']);
-
+      final itemIsBottle = menuEntry['isBottle'];
+      print(menuEntry);
       double? quantity = 0;
       if (_quantityControllers[itemName] != null) {
         if (_quantityControllers[itemName] != "") {
@@ -406,12 +493,19 @@ class _SelectMenuScreenState extends State<SelectMenuScreen> {
       }
 
       quantity ??= 0;
+      if (itemIsBottle) {
+        bottleAmount += quantity * bottleValue!;
+      }
 
       total += double.tryParse((itemPrice! * quantity).toStringAsFixed(2))!;
       taxAmount =
           double.tryParse((total * taxValue! / 100).toStringAsFixed(2))!;
-      grandTotal = double.tryParse(
-          (total + taxAmount + deliveryChargesValue!).toStringAsFixed(2))!;
+      grandTotal = double.tryParse((total +
+              taxAmount +
+              deliveryChargesValue! +
+              bottleAmount +
+              miscAmount)
+          .toStringAsFixed(2))!;
     }
 
     return total;

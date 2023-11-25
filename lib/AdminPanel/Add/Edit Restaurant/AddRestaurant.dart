@@ -22,10 +22,12 @@ class AddRestaurantState extends State<AddRestaurant> {
   bool isLoading = false;
   final TextEditingController menuDescriptionController =
       TextEditingController();
+  final TextEditingController menuCategoryController = TextEditingController();
 
   @override
   initState() {
     super.initState();
+    menuCategoryController.text = "bottle";
   }
 
   resetControllers() {
@@ -33,6 +35,7 @@ class AddRestaurantState extends State<AddRestaurant> {
     numberController.text = "";
     userNameController.text = "";
     passwordController.text = "";
+    menuCategoryController.text = "bottle";
   }
 
   @override
@@ -162,6 +165,28 @@ class AddRestaurantState extends State<AddRestaurant> {
                                                       passwordController,
                                                   func: () {}),
                                               SizedBox(height: 10),
+                                              MyTextField(
+                                                  label: 'New Menu Item',
+                                                  controller:
+                                                      menuItemController,
+                                                  func: () {}),
+                                              MyTextField(
+                                                  label: 'New Menu Price',
+                                                  inputType:
+                                                      TextInputType.number,
+                                                  controller:
+                                                      menuPriceController,
+                                                  func: () {}),
+                                              MyTextField(
+                                                  label: 'New Menu Description',
+                                                  controller:
+                                                      menuDescriptionController,
+                                                  func: () {}),
+                                              MyTextField(
+                                                  label: 'New Menu Category',
+                                                  controller:
+                                                      menuCategoryController,
+                                                  func: () {}),
                                               Text('Menu'),
                                               for (int i = 0;
                                                   i < menu.length;
@@ -183,21 +208,6 @@ class AddRestaurantState extends State<AddRestaurant> {
                                                     },
                                                   ),
                                                 ),
-                                              MyTextField(
-                                                  label: 'New Menu Item',
-                                                  controller:
-                                                      menuItemController,
-                                                  func: () {}),
-                                              MyTextField(
-                                                  label: 'New Menu Price',
-                                                  controller:
-                                                      menuPriceController,
-                                                  func: () {}),
-                                              MyTextField(
-                                                  label: 'New Menu Description',
-                                                  controller:
-                                                      menuDescriptionController,
-                                                  func: () {}),
                                             ],
                                           ),
                                         ),
@@ -238,7 +248,10 @@ class AddRestaurantState extends State<AddRestaurant> {
                                             menuItemController.text.trim(),
                                             itemPrice,
                                             menuDescriptionController.text
-                                                .trim());
+                                                .trim(),
+                                            menuCategoryController.text
+                                                .toLowerCase()
+                                                .contains("bottle"));
 
                                         menuItemController.clear();
                                         menuPriceController.clear();

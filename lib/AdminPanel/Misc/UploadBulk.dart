@@ -7,16 +7,20 @@ import 'package:restaurant_management/API/firebaseFunctions.dart';
 
 Future<void> loadCSV() async {
   String csvString = await rootBundle.loadString('assets/menu.csv');
-  List<Map<String, String>> menuItems = [];
+  List<Map<dynamic, dynamic>> menuItems = [];
 
   List<List<dynamic>> csvTable = CsvToListConverter().convert(csvString);
 
   List<String> headers = csvTable[0].map((dynamic e) => e.toString()).toList();
 
   for (int i = 1; i < csvTable.length; i++) {
-    Map<String, String> menuItem = {};
+    Map<dynamic, dynamic> menuItem = {};
     for (int j = 0; j < headers.length; j++) {
-      menuItem[headers[j]] = csvTable[i][j].toString();
+      if (headers[j] == "isBottle") {
+        menuItem[headers[j]] = true;
+      } else {
+        menuItem[headers[j]] = csvTable[i][j].toString();
+      }
     }
 
     menuItems.add(menuItem);

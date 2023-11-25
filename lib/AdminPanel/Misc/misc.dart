@@ -9,11 +9,15 @@ class EditTaxAndDeliveryScreen extends StatefulWidget {
 
 class _EditTaxAndDeliveryScreenState extends State<EditTaxAndDeliveryScreen> {
   final TextEditingController taxController = TextEditingController();
+  final TextEditingController bottleController = TextEditingController();
+  final TextEditingController miscController = TextEditingController();
   final TextEditingController deliveryChargesController =
       TextEditingController();
 
   double? taxValue;
   double? deliveryChargesValue;
+  double? miscValue;
+  double? bottleValue;
 
   final CollectionReference miscCollection =
       FirebaseFirestore.instance.collection('misc');
@@ -33,9 +37,14 @@ class _EditTaxAndDeliveryScreenState extends State<EditTaxAndDeliveryScreen> {
         setState(() {
           taxValue = miscDoc['tax']?.toDouble();
           deliveryChargesValue = miscDoc['deliveryCharges']?.toDouble();
-          taxController.text = taxValue?.toStringAsFixed(2) ?? '';
+          miscValue = miscDoc['miscCharges']?.toDouble();
+          bottleValue = miscDoc['bottleCharges']?.toDouble();
+          taxController.text =
+              taxController.text = taxValue?.toStringAsFixed(2) ?? '';
           deliveryChargesController.text =
               deliveryChargesValue?.toStringAsFixed(2) ?? '';
+          miscController.text = miscValue?.toStringAsFixed(2) ?? '';
+          bottleController.text = bottleValue?.toStringAsFixed(2) ?? '';
         });
       }
     } catch (e) {
@@ -48,10 +57,14 @@ class _EditTaxAndDeliveryScreenState extends State<EditTaxAndDeliveryScreen> {
       final double newTax = double.parse(taxController.text);
       final double newDeliveryCharges =
           double.parse(deliveryChargesController.text);
+      final double newMisc = double.parse(miscController.text);
+      final double newBottle = double.parse(bottleController.text);
 
       await miscCollection.doc('miscData').update({
         'tax': newTax,
         'deliveryCharges': newDeliveryCharges,
+        'miscCharges': newMisc,
+        'bottleCharges': newBottle,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,7 +90,7 @@ class _EditTaxAndDeliveryScreenState extends State<EditTaxAndDeliveryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Tax and Delivery Charges'),
+        title: const Text('Edit Charges'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -93,6 +106,16 @@ class _EditTaxAndDeliveryScreenState extends State<EditTaxAndDeliveryScreen> {
               controller: deliveryChargesController,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(labelText: 'Delivery Charges'),
+            ),
+            TextFormField(
+              controller: miscController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: 'Miscellaneous Charges'),
+            ),
+            TextFormField(
+              controller: bottleController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(labelText: 'Bottle Charges'),
             ),
             SizedBox(height: 20),
             ElevatedButton(

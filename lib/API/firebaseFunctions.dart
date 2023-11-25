@@ -75,8 +75,8 @@ Future<String> deleteMenuItem(String docId, String name, String price) async {
   return "Menu item deleted successfully!";
 }
 
-Future<bool> addMenuItem(
-    String docId, String menuItem, String menuPrice, String description) async {
+Future<bool> addMenuItem(String docId, String menuItem, String menuPrice,
+    String description, bool isBottle) async {
   try {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -95,6 +95,7 @@ Future<bool> addMenuItem(
               'item': menuItem,
               'price': menuPrice,
               'description': description,
+              'isBottle': isBottle,
             },
           ]),
         });
@@ -112,7 +113,7 @@ Future<bool> addMenuItem(
 }
 
 Future<bool> addMenuItemsTEmporary(
-    String docId, List<Map<String, String>> menuItems) async {
+    String docId, List<Map<dynamic, dynamic>> menuItems) async {
   try {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -132,6 +133,7 @@ Future<bool> addMenuItemsTEmporary(
             'item': item['item'],
             'price': item['price'],
             'description': item['description'] ?? '',
+            'isBottle': item['isBottle'],
           };
         }).toList();
 

@@ -15,11 +15,11 @@ class MainScreenAdmin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     loadCSV();
-      //   },
-      // ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          loadCSV();
+        },
+      ),
       primary: false,
       body: Center(
         child: SingleChildScrollView(
